@@ -1,0 +1,9 @@
+#Chatbot project Requirements
+1. Python 3.x
+2. nltk
+3. scikit-learn
+4. json
+5. random
+6. punk
+7. wordnet
+8. punk_tab

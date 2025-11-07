@@ -1,0 +1,40 @@
+{
+  "intents": [
+    {
+      "tag": "greeting",
+      "patterns": ["hi", "hello", "hey", "good morning", "good evening"],
+      "responses": ["Hello!", "Hi there!", "Hey! How can I help you today?", "Good morning!"]
+    },
+    {
+      "tag": "goodbye",
+      "patterns": ["bye", "see you", "goodbye"],
+      "responses": ["Goodbye!", "Take care!", "See you soon!"]
+    },
+    {
+      "tag": "thanks",
+      "patterns": ["thanks", "thank you", "thx", "thankful"],
+      "responses": ["You're welcome!", "No problem!", "Glad I could help!"]
+    },
+    {
+      "tag": "creator_info",
+      "patterns": ["who made you", "programmer", "you work"],
+      "responses": ["I was created by a dedicated programmer.", "My creator is very skilled!"]
+    },
+    {
+      "tag": "bot_identity",
+      "patterns": ["what is your name", "who are you", "your name"],
+      "responses": ["I am {BOT_NAME}, a simple rule-based chatbot.", "You can call me {BOT_NAME}", "I am {BOT_NAME}, your personal chatbot"]
+    },
+    {
+      "tag": "time_query",
+      "patterns": ["what time is it", "current time", "time now"],
+      "responses": [""] 
+    },
+    {
+      "tag": "noanswer",
+      "patterns": ["i dont know", "not sure", "maybe", "what was that", "like"],
+      "responses": ["Sorry, I didn't get that. Could you please rephrase?", "Can you say that another way?", "I am not programmed for that topic yet."]
+    }
+  ]
+}
+
