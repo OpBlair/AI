@@ -1,0 +1,79 @@
+<!--
+/chess_ai_project
+├── /backend                    <-- Python (Flask/Django) for AI logic
+│   ├── app.py                  <-- Server initialization
+│   ├── chess_engine.py         <-- Minimax, Alpha-Beta, Evaluation
+│   └── requirements.txt
+│
+└── /frontend                   <-- Web assets
+    ├── /static                 <-- CSS, JS, Piece Images
+    │   ├── /css
+    │   │   └── style.css       <-- Compiled Tailwind CSS
+    │   └── /js
+    │       └── chess_script.js <-- Handles board interaction and API calls
+    └── index.html              <-- The main Chess board HTML
+
+/sudoku_solver_project
+├── /backend                    <-- Python (Flask/Django) for Solver logic
+│   ├── app.py                  <-- Server initialization
+│   ├── sudoku_solver.py        <-- Backtracking, CSP heuristics (MRV)
+│   └── requirements.txt
+│
+└── /frontend                   <-- Web assets
+    ├── /static                 <-- CSS, JS
+    │   ├── /css
+    │   │   └── style.css
+    │   └── /js
+    │       └── sudoku_script.js <-- Handles input, solving requests, and display
+    └── index.html              <-- The main Sudoku board HTML
+-->
+<!doctype html>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+	<title>Chess Game</title>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+	<div id="chess-board" class="grid grid-cols-8 shadow-2xl border-2 border-gray-800">
+        <div data-row="8" data-col="a" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-black">♜</div>
+        <div data-row="8" data-col="b" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-black">♞</div>
+        <div data-row="8" data-col="c" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-black">♝</div>
+        <div data-row="8" data-col="d" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-black">♛</div>
+        <div data-row="8" data-col="e" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-black">♚</div>
+        <div data-row="8" data-col="f" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-black">♝</div>
+        <div data-row="8" data-col="g" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-black">♞</div>
+        <div data-row="8" data-col="h" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-black">♜</div>
+
+        <div data-row="7" data-col="a" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-black">♟</div>
+        <div data-row="7" data-col="b" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-black">♟</div>
+        <div data-row="7" data-col="c" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-black">♟</div>
+        <div data-row="7" data-col="d" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-black">♟</div>
+        <div data-row="7" data-col="e" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-black">♟</div>
+        <div data-row="7" data-col="f" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-black">♟</div>
+        <div data-row="7" data-col="g" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-black">♟</div>
+        <div data-row="7" data-col="h" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-black">♟</div>
+
+        <div class="w-12 h-12 md:w-16 md:h-16 bg-gray-500"></div>
+        <div class="w-12 h-12 md:w-16 md:h-16 bg-amber-100"></div>
+        <div class="w-12 h-12 md:w-16 md:h-16 bg-amber-100"></div>
+        <div class="w-12 h-12 md:w-16 md:h-16 bg-gray-500"></div>
+
+        <div data-row="2" data-col="a" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-white">♙</div>
+        <div data-row="2" data-col="b" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-white">♙</div>
+        <div data-row="2" data-col="h" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-white">♙</div>
+
+        <div data-row="1" data-col="a" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-white">♖</div>
+        <div data-row="1" data-col="b" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-white">♘</div>
+        <div data-row="1" data-col="c" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-white">♗</div>
+        <div data-row="1" data-col="d" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-white">♕</div>
+        <div data-row="1" data-col="e" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-white">♔</div>
+        <div data-row="1" data-col="f" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-white">♗</div>
+        <div data-row="1" data-col="g" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-amber-100 text-white">♘</div>
+        <div data-row="1" data-col="h" class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-3xl md:text-5xl bg-gray-500 text-white">♖</div>
+
+    </div>
+</body>
+</html>
