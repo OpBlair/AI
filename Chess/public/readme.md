@@ -1,6 +1,6 @@
 # ♟️ Chess AI Project: Minimax with Alpha-Beta Pruning
 
-This project implements a fully functional Chess game with a strong AI opponent, built to demonstrate core concepts of Artificial Intelligence, specifically **Adversarial Search** and **Heuristic Evaluation**.
+This project aims to implement a fully functional Chess game with a strong AI opponent, built to demonstrate core concepts of Artificial Intelligence, specifically **Adversarial Search** and **Heuristic Evaluation**.
 
 -----
 
@@ -10,7 +10,7 @@ This project implements a fully functional Chess game with a strong AI opponent,
 
 This project follows a clean separation of concerns:
 
-  * `/frontend`: Contains the web interface (HTML, CSS, JavaScript) for the board and user interaction.
+  * `/frontend`: Contains the web interface (HTML, CSS, JavaScript, TypeScript) for the board and user interaction.
   * `/backend`: Contains the Python code that handles game logic, move validation, and the core AI engine.
 
 ### Prerequisites
@@ -20,12 +20,13 @@ You will need the following installed:
   * **Python 3.x**
   * **A Python Web Framework** (e.g., Flask or Django, as listed in `backend/requirements.txt`)
   * **Web Browser** (for the frontend)
+  * **TypeScript**
 
 ### Installation and Setup
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [YOUR-REPO-URL]
+    git clone [this repo]
     cd chess_ai_project
     ```
 2.  **Setup Backend Environment:**
@@ -36,6 +37,12 @@ You will need the following installed:
 
     # Install dependencies
     pip install -r backend/requirements.txt
+
+    #Install TypeScript
+    npm install typescript --save-dev
+
+    #compile it later
+    npx tsc
     ```
 3.  **Run the Server:**
     ```bash
