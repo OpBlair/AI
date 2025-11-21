@@ -33,6 +33,169 @@ const pieceSVGMap: Record<string, string> = {
 	'wp': './assets/pawnWhite.svg',
 }
 
+// === Utility Functions ===
+interface Coords{
+	col: number; // 1 to 8
+	row: number; // 1 to 8
+}
+
+function getCoords(squareId: string): Coords{
+	const colChar = squareId.charAt(0);
+	const rowNum = parseInt(squareId.charAt(1));
+	const colIndex = COLUMNS.indexOf(colChar);
+
+	return {col: colIndex + 1, row: rowNum};
+}
+
+// === Validation for the pieces ===
+//check for clear path
+function isPathClear(fromId: string, toId: string, dCol: number, dRow: number): boolean{
+	let current = getCoords(fromId);
+	let target = getCoords(toId);
+
+	//determine the step direction for columns and rows
+	const stepCol = dCol > 0 ? 1 : dCol < 0 ? -1 : 0;
+	const stepRow = dRow > 0 ? 1 : dRow < 0 ? -1 : 0;
+
+	//move one step at a time
+	current.col += stepCol;
+	current.row += stepRow;
+
+	while(current.col !== target.col || current.row !== target.row){
+		const currentId = COLUMNS[current.col - 1] + current.row.toString();
+		// if any square in between then path isn't clear
+		if(boardState[currentId]){
+			return false;
+		}
+		current.col += stepCol;
+		current.row += stepRow;
+	}
+	return true;
+}
+
+//Pawn Rule
+function isValidPawnMove(fromId: string, toId: string, pieceCode: string): boolean{
+	const from = getCoords(fromId);
+	const to = getCoords(toId);
+
+	const isWhite = pieceCode === 'wp';
+	const direction = isWhite ? 1 : -1;
+
+	const rowDiff = (to.row - from.row) * direction;
+	const colDiff = Math.abs(to.col - from.col);
+
+	//Must move forward
+	if(rowDiff <= 0 ) return false;
+	if(colDiff > 1 ) return false;
+
+	const targetPiece = boardState[toId];
+
+	//diagonal capture 
+	if(colDiff === 1){
+		return rowDiff === 1 && !!targetPiece; // move forward and occupy target
+	}
+
+	//straight move
+	if(targetPiece) return false; // cannot move straight into occupied square
+
+	//one square move
+	if(rowDiff === 1) return true;
+
+	//two square move(from starting rank)
+	const startRank = isWhite ? 2 : 7;
+	if(from.row === startRank && rowDiff === 2){
+		const middleRow = from.row + direction;
+		const middleSquareId = fromId.charAt(0) + middleRow.toString();
+		return !boardState[middleSquareId]; //check is  the middle square is empty
+	}
+
+	return false;
+}
+
+//Rook: Horizontal and vertical movement
+function isValidRookMove(fromId: string, toId: string): boolean{
+	const from = getCoords(fromId);
+	const to = getCoords(toId);
+	const dCol = to.col - from.col;
+	const dRow = to.row - from.row;
+
+	//strictly horizontal(dRow = 0), or vertical (dcol = 0)
+	if(dCol !== 0 && dRow !== 0) return false;
+
+	//check if path is clear
+	return isPathClear(fromId, toId, dCol, dRow);
+}
+
+//Bishop: Diagonal Movement
+function isValidBishopMove(fromId: string, toId: string): boolean{
+	const from = getCoords(fromId);
+	const to = getCoords(toId);
+	const dCol = to.col - from.col;
+	const dRow = to.row - from.row;
+
+	//must move exactly diagonally(abs(dcol) == abs(dRow))
+	if(Math.abs(dCol) !== Math.abs(dRow) || dCol === 0) return false;
+
+	//check if path is clear
+	return isPathClear(fromId, toId, dCol, dRow);
+}
+
+//Queen: Horizontal, Vertical, diagonal, movement
+function isValidQueenMove(fromId: string, toId: string): boolean{
+	return isValidRookMove(fromId, toId) || isValidBishopMove(fromId, toId);
+}
+
+//Knight: L-shape movement (2 squares in one direction, 1 square perpendicular)
+function isValidKnightMove(fromId: string, toId: string): boolean{
+	const from = getCoords(fromId);
+	const to = getCoords(toId);
+	const dCol = Math.abs(to.col - from.col);
+	const dRow = Math.abs(to.row - from.row);
+
+	//Must be (2,1) or (1,2) in difference
+	return (dCol === 2 && dRow === 1) || (dCol === 1 && dRow === 2);
+}
+
+//King: one square in any direction * castling logic is handled in backend *
+function isValidKingMove(fromId: string, toId: string): boolean{
+	const from = getCoords(fromId);
+	const to = getCoords(toId);
+	const dCol = Math.abs(to.col - from.col);
+	const dRow = Math.abs(to.row - from.row);
+
+	//Must move exactyl 1 square away
+	return dCol <= 1 && dRow <= 1 && (dCol !== 0 || dRow !== 0);
+}
+
+// === Master Validation ===
+function isValidMove(fromId: string, toId: string, pieceCode: string): boolean{
+	const targetPiece = boardState[toId];
+
+	//1. get color of the piece being moved
+	const movingColor = pieceCode.charAt(0);
+
+	//2. Rule: cannot capture your own piece
+	if(targetPiece && targetPiece.charAt(0) === movingColor){
+		console.log("Validation Failed: Cannot Capture own piece.");
+		return false;
+	}
+
+	//3. Rule: Check Piece-Specific Rules
+	const pieceType = pieceCode.charAt(1);
+
+	switch(pieceType){
+		case 'p' : return isValidPawnMove(fromId, toId, pieceCode);
+		case 'r' : return isValidRookMove(fromId, toId);
+		case 'b' : return isValidBishopMove(fromId, toId);
+		case 'q' : return isValidQueenMove(fromId, toId);
+		case 'n' : return isValidKnightMove(fromId, toId);
+		case 'k' : return isValidKingMove(fromId, toId);
+		default : return false;
+	}
+}
+
+// === RENDERING AND BOARD CREATION ===
+
 //function to place a piece in a square
 function renderPiece(square: HTMLElement, pieceCode: string | null): void{
 	if(pieceCode && pieceSVGMap[pieceCode]){
@@ -77,6 +240,8 @@ function createBoard(): void{
 	console.log("Chessbaord and initial pieces generated successfully!");
 }
 
+// === EVENT HANDLING ===
+
 //helper function to split the class string into an array of arguments
 const getHighListClasses = () => highLightClass.split(' ');
 
@@ -107,13 +272,20 @@ function handleSquareClick(event: Event): void{
 		return;
 		}
 
-		//Move piece Logic (No validation yet)
+		//Move piece Logic
 		const fromSquareId = selectedSquare.id;
 		const toSquareId = square.id;
 		const pieceCode = boardState[fromSquareId];
 
 		if(pieceCode){
-			//update the state
+			// === Validation Check ===
+			if(!isValidMove(fromSquareId, toSquareId, pieceCode)){
+				// if the move is illegal, deselect the piece and exit
+				selectedSquare = null;
+				console.log(`Illegal move attempted: ${pieceCode} from ${fromSquareId} to ${toSquareId}`);
+				return;
+			}
+			// --- Execute the Move ---
 			boardState[toSquareId] = pieceCode;
 			boardState[fromSquareId] = null;
 
