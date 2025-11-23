@@ -100,6 +100,16 @@ You will need the following installed:
 
 -----
 
+# ✨ Features and Current Status
+## Core Game Implementation (Current JS State)
+| Feature | Status | Notes |
+| :--- | :--- | :--- |
+| Visual Board | Complete | Responsive 8×8 board styled using Tailwind CSS. |
+| Human-vs-Human | Complete | Basic two-player mode with Turn Management and visual turn indicator implemented in board.js.|
+| Basic Validation| Complete | Piece-specific movement rules are verified in board.js. |
+| Full Ruleset (Complex) | Pending Backend | "Complex rules (Castling, En Passant, Check/Checkmate, Promotion) will be handled by the python-chess library on the Flask server." |
+| Client-Server Comm. | Pending Implementation | The frontend is ready to be updated to send move requests via REST API to the Flask server.|
+-----
 ## 🤝 Next Steps / Future Enhancements
 
   * **Iterative Deepening:** Implement ID search for time management.
