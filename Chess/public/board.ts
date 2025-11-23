@@ -9,6 +9,9 @@ const darkSquare: string = 'bg-amber-700'; //warm chocolate
 let selectedSquare: HTMLElement | null = null;
 const highLightClass = 'ring-2 ring-blue-500 ring-inset';
 
+//Track the current Player(w for white, b for black)
+let currentPlayer: 'w' | 'b' = 'w';
+
 //Initial Board State
 const boardState: Record<string, string | null > = {
 	'a8': 'br', 'b8': 'bn', 'c8': 'bb', 'd8': 'bq', 'e8': 'bk', 'f8': 'bb', 'g8': 'bn', 'h8': 'br',
@@ -293,6 +296,11 @@ function handleSquareClick(event: Event): void{
 			renderPiece(square, pieceCode);
 			renderPiece(selectedSquare, null);
 			console.log(`Moved ${pieceCode} from ${fromSquareId} to ${toSquareId}`);
+
+			//Switch the turn
+			currentPlayer = currentPlayer === 'w' ? 'b' : 'w';
+			updateTurnIndicator();
+			console.log(`Turn switched to : ${currentPlayer === 'w' ? 'White' : 'Black'}`);
 		}
 
 		selectedSquare = null; //clear selection after move
@@ -304,6 +312,14 @@ function handleSquareClick(event: Event): void{
 
 	//only select the square if it contains a piece
 	if(piece){
+		//Only select pieces of the current player's color
+		const pieceColor = piece.charAt(0);
+		if(pieceColor !== currentPlayer){
+			console.log(`Selection Failed: It's ${currentPlayer === 'w' ? 'White' : 'Black'}'s turn.`);
+			selectedSquare = null;
+			return;
+		}
+
 		//select new squre and highlight
 		square.classList.add(...highLightClasses);
 		selectedSquare = square;
@@ -313,10 +329,33 @@ function handleSquareClick(event: Event): void{
 	}
 }
 
+//Turn indicator
+function updateTurnIndicator(): void{
+	const indicator = document.getElementById('turn-indicator');
+	const container = document.getElementById('turn-indicator-container');
+	if(indicator && container){
+		const isWhite = currentPlayer === 'w';
+		const color = currentPlayer === 'w' ? 'White' : 'Black';
+
+		//update text color
+		indicator.classList.remove('text-stone-900', 'text-gray-200');
+		const textColor = isWhite ? 'text-stone-900' : 'text-gray-200';
+        indicator.classList.add(textColor);
+
+        //update container background
+        container.classList.remove('bg-yellow-50', 'bg-amber-700');
+        const bgColor = isWhite ? 'bg-yellow-50' : 'bg-amber-700';
+        container.classList.add(bgColor);
+
+        //update the text content
+		indicator.textContent = `${color} to Move`;
+	}
+}
+
 //generate board once DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
 	createBoard();
-
+	updateTurnIndicator();
 	//attach a single event listener to the main  board container (Event Delegation)
 	const board = document.getElementById('chess-board');
 	if(board){
@@ -324,3 +363,4 @@ document.addEventListener('DOMContentLoaded', () => {
 		console.log("Click listeners attached to the board");
 	}
 });
+
