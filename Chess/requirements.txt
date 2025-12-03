@@ -2,3 +2,4 @@ Flask
 Typescript
 Tailwindcss
 python-chess
+flask-cors
