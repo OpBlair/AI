@@ -2,7 +2,7 @@
   "intents": [
     {
       "tag": "greeting",
-      "patterns": ["hi", "hello", "hey", "good morning", "good evening"],
+      "patterns": ["hi", "hello", "hey", "good morning", "good evening", "good afternoon"],
       "responses": ["Hello!", "Hi there!", "Hey! How can I help you today?", "Good morning!"]
     },
     {
@@ -17,12 +17,12 @@
     },
     {
       "tag": "creator_info",
-      "patterns": ["who made you", "programmer", "you work"],
+      "patterns": ["who made you", "programmer", "you work",],
       "responses": ["I was created by a dedicated programmer.", "My creator is very skilled!"]
     },
     {
       "tag": "bot_identity",
-      "patterns": ["what is your name", "who are you", "your name"],
+      "patterns": ["what is your name", "who are you", "your name", "tell me about yourself"],
       "responses": ["I am {BOT_NAME}, a simple rule-based chatbot.", "You can call me {BOT_NAME}", "I am {BOT_NAME}, your personal chatbot"]
     },
     {
