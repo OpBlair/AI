@@ -17,13 +17,13 @@
     },
     {
       "tag": "creator_info",
-      "patterns": ["who made you", "programmer", "you work",],
+      "patterns": ["who made you", "programmer", "you work", "who do you credit ?"],
       "responses": ["I was created by a dedicated programmer.", "My creator is very skilled!"]
     },
     {
       "tag": "bot_identity",
-      "patterns": ["what is your name", "who are you", "your name", "tell me about yourself"],
-      "responses": ["I am {BOT_NAME}, a simple rule-based chatbot.", "You can call me {BOT_NAME}", "I am {BOT_NAME}, your personal chatbot"]
+      "patterns": ["what is your name", "who are you", "your name", "tell me about yourself", "identify your self", "may I know who am talking to"],
+      "responses": ["I am {BOT_NAME}, a simple rule-based chatbot.", "You can call me {BOT_NAME}", "I am {BOT_NAME}, your personal chatbot", "I am a work in progress"]
     },
     {
       "tag": "time_query",
