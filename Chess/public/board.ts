@@ -297,6 +297,8 @@ function handleSquareClick(event: Event): void{
 			renderPiece(selectedSquare, null);
 			console.log(`Moved ${pieceCode} from ${fromSquareId} to ${toSquareId}`);
 
+			sendDataToBackend(fromSquareId, toSquareId);
+
 			//Switch the turn
 			currentPlayer = currentPlayer === 'w' ? 'b' : 'w';
 			updateTurnIndicator();
@@ -349,6 +351,37 @@ function updateTurnIndicator(): void{
 
         //update the text content
 		indicator.textContent = `${color} to Move`;
+	}
+}
+
+// === API Communication Function ===
+async function sendDataToBackend(fromId: string, toId: string): Promise<void> {
+	const dataToSend = {
+		boardState: boardState,
+		currentPlayer: currentPlayer,
+		lastMove: {from: fromId, to: toId}
+	};
+
+	console.log("Sending move to backend for testing...");
+
+	try{
+		const response = await fetch('http://127.0.0.1:5000/api/test_connection', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(dataToSend),
+		});
+
+		if(!response.ok){
+			throw new Error(`HTTP error! Status: ${response.status}`);
+		}
+
+		const result = await response.json();
+		console.log("Backend Response:", result);
+
+	} catch(error){
+		console.error('Failed to communicate with the backend:', error);
 	}
 }
 
