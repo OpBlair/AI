@@ -354,6 +354,26 @@ function updateTurnIndicator(): void{
 	}
 }
 
+// === AI move update to the UI
+function applyAIMove(aiMove: {from_square: string, to_square: string, piece_code: string, message?:string}){
+	const {from_square, to_square, piece_code} = aiMove;
+
+	//update the board state
+	boardState[to_square] = piece_code;
+	boardState[from_square] = null;
+
+	//update the DOM
+	const fromCell = document.getElementById(from_square);
+	const toCell = document.getElementById(to_square);
+
+	if(fromCell && toCell){
+		renderPiece(toCell, piece_code);
+		renderPiece(fromCell, null);
+	}
+
+	console.log(aiMove.message || `AI moved ${piece_code} from ${from_square}`);
+}
+
 // === API Communication Function ===
 async function sendDataToBackend(fromId: string, toId: string): Promise<void> {
 	const dataToSend = {
@@ -365,7 +385,7 @@ async function sendDataToBackend(fromId: string, toId: string): Promise<void> {
 	console.log("Sending move to backend for testing...");
 
 	try{
-		const response = await fetch('http://127.0.0.1:5000/api/test_connection', {
+		const response = await fetch('http://127.0.0.1:5000/api/ai_move', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -380,6 +400,11 @@ async function sendDataToBackend(fromId: string, toId: string): Promise<void> {
 		const result = await response.json();
 		console.log("Backend Response:", result);
 
+		if(result.status === 'move_found'){
+			applyAIMove(result);
+			currentPlayer = 'w';
+			updateTurnIndicator();
+		}
 	} catch(error){
 		console.error('Failed to communicate with the backend:', error);
 	}
