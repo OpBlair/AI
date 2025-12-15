@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from chessEngine import ChessEngine
 
 app = Flask(__name__)
 #allow requests from frontend
@@ -10,27 +11,47 @@ def home():
     return "Chess AI backend is running...."
 
 #--- API Route placeholder
-@app.route('/api/test_connection', methods=['POST'])
-def test_connection():
-    #Receive full board state object from frontend.
+@app.route('/api/ai_move', methods=['POST', 'OPTIONS'])
+def get_ai_move():
+    #Receive full board state object from frontend, calculates AI move and returns it.
+    if request.method == 'OPTIONS':
+    	return '', 200
+
     try:
         data = request.get_json()
         board_state = data.get('boardState')
-        current_player = data.get('currentPlayer')
-
+     
         if not board_state:
             return jsonify({
             	"Status": "error", 
             	"message": "Missing boardState in request"
             }), 400
 
-        print(f"\n--- Received Data from Frontend ---")
-        print(f"Current Player: {current_player}")
-        print(f"Board State Keys (Sample): {list(board_state.keys())[:4]}...")
-        print(f"--- End Received Data --- \n")
+        AI_COLOR = 'b'
+
+        #initialize the Engine
+        engine = ChessEngine(board_state)
+
+        #Calculate the Best move using Minimax
+        from_sq, to_sq = engine.find_best_move(ai_color=AI_COLOR)
+        
+        if from_sq and to_sq:
+        	#Return the move coordinates to the frontend
+        	return jsonify({
+        		"status": "move_found",
+        		"from_square": from_sq,
+        		"to_square": to_sq,
+        		"piece_code": engine.board.get(from_sq),
+        		"message": f"AI played: {from_sq} to {to_sq}"
+        	}), 200
+        else:
+        	return jsonify({
+        		"Status": "game_over",
+        		"message": "AI found no legal moves."
+        	}), 200
 
     except Exception as e:   
-        app.logger.error(f"Error in test_coonection: {e}")
+        app.logger.error(f"Error in get_ai_move: {e}")
         return jsonify({"status": "error", "message": f"server error: {e}"}), 500
 
 if __name__ == '__main__':
