@@ -125,7 +125,10 @@ class ChessEngine:
                     all_pseudo_legal_moves.extend(self.get_pawn_moves(sq, color))
 
                 # ---- KNIGHT MOVES -----
+                elif piece_type == 'n':
+                    all_pseudo_legal_moves.extend(self.get_knight_moves(sq, color))
 
+                    
         #Filter for King Safety
         for from_sq, to_sq in all_pseudo_legal_moves:
             captured_piece = self.make_move(from_sq, to_sq)
@@ -214,7 +217,29 @@ class ChessEngine:
 
         return moves
 
-    #--Knight moves
-    #def get_knight_moves():
+    #--Knight moves ----
+    def get_knight_moves(self, from_sq: str, color: str): -> list[tuple[str, str]]:
+        moves = []
+        row, col = square_to_coords(from_sq)
 
+        #possible moves(row_change, col_change)
+        knight_deltas = [
+            (2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2)
+        ]
+
+        opponent_color = 'w' if color == 'b' else 'b'
+
+        for d_row, d_col in knight_deltas:
+            target_row = row + d_row
+            target_col = col + d_col
+            target_sq = coords_to_square(target_row, target_col)
+
+            if target_sq:
+                target_piece = self.board.get(target_sq)
+
+                #move is valid if the square is empty OR contains opponent's piece
+                if not target_piece or target_piece[0] == opponent_color:
+                    moves.append((from_sq, target_sq))
+
+        return moves
 
