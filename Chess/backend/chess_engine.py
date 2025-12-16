@@ -129,10 +129,10 @@ class ChessEngine:
         #Filter for King Safety
         for from_sq, to_sq in all_pseudo_legal_moves:
             captured_piece = self.make_move(from_sq, to_sq)
-            #if not self.is_in_check(color):
-            #   final_legal_moves.append((from_sq, to_sq))
+            if not self.is_in_check(color):
+               final_legal_moves.append((from_sq, to_sq))
 
-            #self.undo_move(from_sq, to_sq, captured_piece)
+            self.undo_move(from_sq, to_sq, captured_piece)
             final_legal_moves.append((from_sq, to_sq))
         return final_legal_moves
 
@@ -216,3 +216,4 @@ class ChessEngine:
 
     #--Knight moves
     #def get_knight_moves():
+
