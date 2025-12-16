@@ -40,7 +40,7 @@ class ChessEngine:
         if depth == 0:
             return self.evaluate()
 
-        current_color = 'w' if maximizing_player else 'b'
+        current_color = 'b' if maximizing_player else 'w'
         legal_moves = self.get_legal_moves(current_color)
 
         if not legal_moves:
@@ -216,4 +216,5 @@ class ChessEngine:
 
     #--Knight moves
     #def get_knight_moves():
+
 
