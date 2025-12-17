@@ -136,7 +136,6 @@ class ChessEngine:
                final_legal_moves.append((from_sq, to_sq))
 
             self.undo_move(from_sq, to_sq, captured_piece)
-            final_legal_moves.append((from_sq, to_sq))
         return final_legal_moves
 
     def make_move(self, from_sq: str, to_sq: str) -> str | None:
@@ -242,4 +241,5 @@ class ChessEngine:
                     moves.append((from_sq, target_sq))
 
         return moves
+
 
