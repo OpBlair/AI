@@ -275,7 +275,7 @@ class ChessEngine:
     #=== Rook moves ====
     def get_rook_moves(self, from_sq: str, color: str) -> list[tuple[str, str]]:
         directions = [
-            (0, 1), (0, -1) #horizontal
+            (0, 1), (0, -1), #horizontal
             (1, 0), (-1, 0) #vertical
         ]
         return self.get_directional_moves(from_sq, color, directions)
@@ -285,5 +285,14 @@ class ChessEngine:
         directions = [
             (1, 1), (1, -1),
             (-1, 1), (-1, -1)
+        ]
+        return self.get_directional_moves(from_sq, color, directions)
+
+    #=== Queen moves ===
+    def get_queen_moves(self, from_sq: str, color: str) -> list[tuple[str, str]]:
+        #combines bishoop and rook moves
+        directions = [
+            (0, 1), (0, -1), (1, 0), (-1, 0), #Rook moves
+            (1, 1), (1, -1), (-1, 1), (-1, -1) #Bishop moves
         ]
         return self.get_directional_moves(from_sq, color, directions)
