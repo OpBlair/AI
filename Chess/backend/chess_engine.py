@@ -128,7 +128,7 @@ class ChessEngine:
                 elif piece_type == 'n':
                     all_pseudo_legal_moves.extend(self.get_knight_moves(sq, color))
 
-                    
+
         #Filter for King Safety
         for from_sq, to_sq in all_pseudo_legal_moves:
             captured_piece = self.make_move(from_sq, to_sq)
@@ -217,7 +217,7 @@ class ChessEngine:
         return moves
 
     #--Knight moves ----
-    def get_knight_moves(self, from_sq: str, color: str): -> list[tuple[str, str]]:
+    def get_knight_moves(self, from_sq: str, color: str) -> list[tuple[str, str]]:
         moves = []
         row, col = square_to_coords(from_sq)
 
@@ -242,4 +242,48 @@ class ChessEngine:
 
         return moves
 
+    #=== Rules for sliding pieces like rook, bishop, queen
+    def get_directional_moves(self, from_sq: str, color: str, directions: list[tuple[int, int]]) -> list[tuple[str, str]]:
+        moves = []
+        row, col = square_to_coords(from_sq)
+        opponent_color = 'w' if color == 'b' else 'b'
 
+        #loop through each direction defined by piece
+        for d_row, d_col in directions:
+            current_row = row + d_row
+            current_col = col + d_col
+
+            #keep sliding till board edge
+            while 1 <= current_row <= 8 and 1 <= current_col <= 8:
+                target_sq = coords_to_square(current_row, current_col)
+                target_piece = self.board.get(target_sq)
+
+                if not target_piece:
+                    #square is empty ? add move and continue sliding
+                    moves.append((from_sq, target_sq))
+                    current_row += d_row
+                    current_col += d_col
+
+                else:
+                    #square is occupied: check if its opponents's piece
+                    if target_piece[0] == opponent_color:
+                        #capture & stop sliding
+                        moves.append((from_sq, target_sq))
+                    break
+        return moves
+
+    #=== Rook moves ====
+    def get_rook_moves(self, from_sq: str, color: str) -> list[tuple[str, str]]:
+        directions = [
+            (0, 1), (0, -1) #horizontal
+            (1, 0), (-1, 0) #vertical
+        ]
+        return self.get_directional_moves(from_sq, color, directions)
+
+    #=== Bishop moves ===
+    def get_bishop_moves(self, from_sq: str, color: str) -> list[tuple[str, str]]:
+        directions = [
+            (1, 1), (1, -1),
+            (-1, 1), (-1, -1)
+        ]
+        return self.get_directional_moves(from_sq, color, directions)
