@@ -7,7 +7,7 @@
     },
     {
       "tag": "goodbye",
-      "patterns": ["bye", "see you", "goodbye"],
+      "patterns": ["bye", "see you", "goodbye", "ciao"],
       "responses": ["Goodbye!", "Take care!", "See you soon!"]
     },
     {
