@@ -12,7 +12,7 @@
     },
     {
       "tag": "thanks",
-      "patterns": ["thanks", "thank you", "thx", "thankful"],
+      "patterns": ["thanks", "thank you", "thx", "thankful", "arigato"],
       "responses": ["You're welcome!", "No problem!", "Glad I could help!"]
     },
     {
