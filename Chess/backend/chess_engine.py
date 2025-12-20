@@ -136,8 +136,10 @@ class ChessEngine:
                 elif piece_type == 'b':
                     all_pseudo_legal_moves.extend(self.get_bishop_moves(sq, color))
 
-                #--- QUEEN MOVES ---
-    
+               #--- QUEEN MOVES ---
+                elif piece_type == 'q':
+                    all_pseudo_legal_moves.extend(self.get_queen_moves(sq, color))
+                
         #Filter for King Safety
         for from_sq, to_sq in all_pseudo_legal_moves:
             captured_piece = self.make_move(from_sq, to_sq)
@@ -331,5 +333,6 @@ class ChessEngine:
                     moves.append((from_sq, target_sq))
         #TODO : CASTLING
         return moves
+
 
 
