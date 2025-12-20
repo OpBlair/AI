@@ -128,7 +128,16 @@ class ChessEngine:
                 elif piece_type == 'n':
                     all_pseudo_legal_moves.extend(self.get_knight_moves(sq, color))
 
+                #---- ROOK MOVES ----
+                elif piece_type == 'r':
+                    all_pseudo_legal_moves.extend(self.get_knight_moves(sq, color))
 
+                #--- BISHOP MOVES ---
+                elif piece_type == 'b':
+                    all_pseudo_legal_moves.extend(self.get_bishop_moves(sq, color))
+
+                #--- QUEEN MOVES ---
+    
         #Filter for King Safety
         for from_sq, to_sq in all_pseudo_legal_moves:
             captured_piece = self.make_move(from_sq, to_sq)
@@ -297,6 +306,7 @@ class ChessEngine:
         ]
         return self.get_directional_moves(from_sq, color, directions)
 
+    #=== King moves ====    
     def get_king_moves(self, from_sq: str, color: str) -> list[tuple[str, str]]:
         moves = []
         row, col = square_to_coords(from_sq)
@@ -321,4 +331,5 @@ class ChessEngine:
                     moves.append((from_sq, target_sq))
         #TODO : CASTLING
         return moves
+
 
