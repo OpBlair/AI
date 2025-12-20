@@ -296,3 +296,29 @@ class ChessEngine:
             (1, 1), (1, -1), (-1, 1), (-1, -1) #Bishop moves
         ]
         return self.get_directional_moves(from_sq, color, directions)
+
+    def get_king_moves(self, from_sq: str, color: str) -> list[tuple[str, str]]:
+        moves = []
+        row, col = square_to_coords(from_sq)
+        opponent_color = 'w' if color == 'b' else 'b'
+
+        #King moves one step in all 8 directions
+        knight_deltas = [
+            (0, 1), (0, -1), (1, 0), (-1, 0),
+            (1, 1), (1, -1), (-1, 1), (-1, -1)
+        ]
+
+        for d_row, d_col in knight_deltas:
+            target_row = row + d_row
+            target_col = col + d_col
+            target_sq = coords_to_square(target_row, target_col)
+
+            if target_sq:
+                target_piece = self.board.get(target_sq)
+
+                #move is valid if square is empty or contains an opponent piece
+                if not target_piece or target_piece[0] == opponent_color:
+                    moves.append((from_sq, target_sq))
+        #TODO : CASTLING
+        return moves
+
