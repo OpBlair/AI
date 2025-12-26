@@ -37,13 +37,20 @@ def get_ai_move():
         
         if from_sq and to_sq:
         	#Return the move coordinates to the frontend
-        	return jsonify({
+        
+            white_in_check = engine.is_in_check('w')
+            black_in_check = engine.is_in_check('b')
+            
+            return jsonify({
         		"status": "move_found",
         		"from_square": from_sq,
         		"to_square": to_sq,
         		"piece_code": engine.board.get(from_sq),
+                "isWhiteInCheck": white_in_check,
+                "isBlackInCheck": black_in_check,
         		"message": f"AI played: {from_sq} to {to_sq}"
         	}), 200
+
         else:
         	return jsonify({
         		"Status": "game_over",
