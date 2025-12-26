@@ -402,6 +402,9 @@ async function sendDataToBackend(fromId: string, toId: string): Promise<void> {
 			const result = await response.json();
 			console.log("Backend Response:", result);
 
+			updateCheckVisuals(result.isWhiteInCheck, 'w');
+			updateCheckVisuals(result.isBlackInCheck, 'b');
+
 			if(result.status === 'move_found'){
 				applyAIMove(result);
 				currentPlayer = 'w';
@@ -411,6 +414,29 @@ async function sendDataToBackend(fromId: string, toId: string): Promise<void> {
 			console.error('Failed to communicate with the backend:', error);
 		}
 	}, 1000);
+}
+
+// === Identify the King ===
+function findKingSquare(color: 'w' | 'b'): string | null {
+	for(const [square, piece] of Object.entries(boardState)){
+		if(piece == color + 'k') return square;
+	}
+	return null;
+}
+
+// === Visual Feedback ===
+function updateCheckVisuals(isCheck: boolean = false, color: 'w' | 'b'){
+	const kingSq = findKingSquare(color);
+	if(!kingSq) return;
+
+	const kingElement = document.getElementById(kingSq);
+	if(kingElement){
+		if(isCheck){
+		kingElement.classList.add('ring-4', 'ring-red-500', 'shadow-[0_0_20px_rgba(239,68,68,0.8)]', 'animate-pulse');
+		}else{
+			kingElement.classList.remove('ring-4', 'ring-red-500', 'shadow-[0_0_20px_rgba(239,68,68,0.8)]', 'animate-pulse');
+		}
+	}
 }
 
 //generate board once DOM is loaded
