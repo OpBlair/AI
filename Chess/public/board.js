@@ -243,6 +243,7 @@ function handleSquareClick(event) {
             renderPiece(square, pieceCode);
             renderPiece(selectedSquare, null);
             console.log(`Moved ${pieceCode} from ${fromSquareId} to ${toSquareId}`);
+            sendDataToBackend(fromSquareId, toSquareId);
             //Switch the turn
             currentPlayer = currentPlayer === 'w' ? 'b' : 'w';
             updateTurnIndicator();
@@ -288,6 +289,80 @@ function updateTurnIndicator() {
         container.classList.add(bgColor);
         //update the text content
         indicator.textContent = `${color} to Move`;
+    }
+}
+// === AI move update to the UI
+function applyAIMove(aiMove) {
+    const { from_square, to_square, piece_code } = aiMove;
+    //update the board state
+    boardState[to_square] = piece_code;
+    boardState[from_square] = null;
+    //update the DOM
+    const fromCell = document.getElementById(from_square);
+    const toCell = document.getElementById(to_square);
+    if (fromCell && toCell) {
+        renderPiece(toCell, piece_code);
+        renderPiece(fromCell, null);
+    }
+    console.log(aiMove.message || `AI moved ${piece_code} from ${from_square}`);
+}
+// === API Communication Function ===
+async function sendDataToBackend(fromId, toId) {
+    const dataToSend = {
+        boardState: boardState,
+        currentPlayer: currentPlayer,
+        lastMove: { from: fromId, to: toId }
+    };
+    console.log("Sending move to backend for testing...");
+    // Simulate giving the AI a moment to "THINK" (1 second delay).
+    setTimeout(async () => {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/ai_move', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(dataToSend),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const result = await response.json();
+            console.log("Backend Response:", result);
+            updateCheckVisuals(result.isWhiteInCheck, 'w');
+            updateCheckVisuals(result.isBlackInCheck, 'b');
+            if (result.status === 'move_found') {
+                applyAIMove(result);
+                currentPlayer = 'w';
+                updateTurnIndicator();
+            }
+        }
+        catch (error) {
+            console.error('Failed to communicate with the backend:', error);
+        }
+    }, 1000);
+}
+// === Identify the King ===
+function findKingSquare(color) {
+    for (const [square, piece] of Object.entries(boardState)) {
+        if (piece == color + 'k')
+            return square;
+    }
+    return null;
+}
+// === Visual Feedback ===
+function updateCheckVisuals(isCheck = false, color) {
+    const kingSq = findKingSquare(color);
+    if (!kingSq)
+        return;
+    const kingElement = document.getElementById(kingSq);
+    if (kingElement) {
+        if (isCheck) {
+            kingElement.classList.add('ring-4', 'ring-red-500', 'shadow-[0_0_20px_rgba(239,68,68,0.8)]', 'animate-pulse');
+        }
+        else {
+            kingElement.classList.remove('ring-4', 'ring-red-500', 'shadow-[0_0_20px_rgba(239,68,68,0.8)]', 'animate-pulse');
+        }
     }
 }
 //generate board once DOM is loaded
