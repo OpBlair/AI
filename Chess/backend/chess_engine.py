@@ -128,24 +128,33 @@ class ChessEngine:
                 elif piece_type == 'n':
                     all_pseudo_legal_moves.extend(self.get_knight_moves(sq, color))
 
-                #---- ROOK MOVES ----
+                # ---- ROOK MOVES ----
                 elif piece_type == 'r':
-                    all_pseudo_legal_moves.extend(self.get_knight_moves(sq, color))
+                    all_pseudo_legal_moves.extend(self.get_rook_moves(sq, color))
 
-                #--- BISHOP MOVES ---
+                # ---- BISHOP MOVES ----
                 elif piece_type == 'b':
                     all_pseudo_legal_moves.extend(self.get_bishop_moves(sq, color))
 
-               #--- QUEEN MOVES ---
+                # ---- QUEEN MOVES ----
                 elif piece_type == 'q':
                     all_pseudo_legal_moves.extend(self.get_queen_moves(sq, color))
+
+                # ---- KING MOVES ----
+                elif piece_type == 'k':
+                    all_pseudo_legal_moves.extend(self.get_king_moves(sq, color))
                 
+
         #Filter for King Safety
         for from_sq, to_sq in all_pseudo_legal_moves:
+            # 1.Execute the move hypothetically
             captured_piece = self.make_move(from_sq, to_sq)
+
+            # 2.Check if the current player is in check after the move
             if not self.is_in_check(color):
                final_legal_moves.append((from_sq, to_sq))
 
+            # 3.Revert the move to explore the next option
             self.undo_move(from_sq, to_sq, captured_piece)
         return final_legal_moves
 
@@ -174,9 +183,26 @@ class ChessEngine:
 
         self.board[to_sq] = captured_piece
 
-    #def is_in_check(self, color: str) -> bool:
+    def is_in_check(self, color: str) -> bool:
         #determines if the King of 'color' is under attack.
+        king_code = color + 'k'
+        king_sq = None
         
+        # 1.Find the King's position
+        for sq, piece_code in self.board.items():
+            if piece_code == king_code:
+                king_sq = sq
+                break
+
+        if not king_sq:
+            # Should only happen in end-game situations like checkmate/stalemate scenarios 
+            # where the king might have been captured (though this engine doesn't track game over yet).
+            return False
+        
+        # 2.Check if the King's square is attacked by the opponent
+        opponent_color = 'w' if color == 'b' else 'b'
+        return self.is_square_attacked(king_sq, opponent_color)
+                
     def get_pawn_moves(self, from_sq: str, color: str) -> list[tuple[str, str]]:
         moves = []
         row, col = square_to_coords(from_sq)
@@ -308,7 +334,6 @@ class ChessEngine:
         ]
         return self.get_directional_moves(from_sq, color, directions)
 
-    #=== King moves ====    
     def get_king_moves(self, from_sq: str, color: str) -> list[tuple[str, str]]:
         moves = []
         row, col = square_to_coords(from_sq)
@@ -334,5 +359,96 @@ class ChessEngine:
         #TODO : CASTLING
         return moves
 
+    def is_square_attacked(self, target_sq: str, by_color: str) -> bool:
+        #Determines if 'target_sq' is attacked by any piece of 'by_color'.
+        #Check 8 directions for sliding pieces and specific positions for King, Knight, and pawn.
+        opponent_king = 'k'
+        opponent_queen = 'q'
+        opponent_rook = 'r'
+        opponent_bishop = 'b'
+        opponent_knight = 'n'
+        opponent_pawn = 'p'
 
+        #The pieces will have a prefix e.g. 'bk'
+        opponent_piece_code_prefix = by_color
 
+        target_row, target_col = square_to_coords(target_sq)
+
+        # 1. Check for sliding pieces
+        #Directions: (d_row, d_col, piece_types_to_look_for)
+        sliding_checks = [
+            # Rook/queen directions (straight)
+            (0, 1, [opponent_rook, opponent_queen]), (0, -1, [opponent_rook, opponent_queen]),
+            (1, 0, [opponent_rook, opponent_queen]), (-1, 0, [opponent_rook, opponent_queen]),
+
+            # Bishop/Queen directions (diagonal)
+            (1, 1, [opponent_bishop, opponent_queen]), (1, -1, [opponent_bishop, opponent_queen]),
+            (-1, 1, [opponent_bishop, opponent_queen]), (-1, -1, [opponent_bishop, opponent_queen]),
+        ]
+
+        for d_row, d_col, piece_types in sliding_checks:
+            current_row = target_row + d_row
+            current_col = target_col + d_col
+
+            while 1 <= current_row <= 8 and 1 <= current_col <= 8:
+                current_sq = coords_to_square(current_row, current_col)
+                piece_code = self.board.get(current_sq)
+
+                if piece_code:
+                    # Found a piece! check if it's the attacking type
+                    if piece_code[0] == by_color and piece_code[1] in piece_types:
+                        return True
+
+                    # Blocked by own piece or non-threathening opponent piece
+                    break
+
+                #keep sliding
+                current_col += d_col
+                current_row += d_row
+
+        # 2. Check for Knight Attacks
+        knight_deltas = [
+            (2, 1), (2, -1), (-2, 1), (-2, -1),
+            (1, 2), (1, -2), (-1, 2), (-1, -2)
+        ]
+
+        for d_row, d_col in knight_deltas:
+            check_row = target_row + d_row
+            check_col = target_col + d_col
+            check_sq = coords_to_square(check_row, check_col)
+
+            if check_sq:
+                piece_code = self.board.get(check_sq)
+                if piece_code == opponent_piece_code_prefix + opponent_knight:
+                    return True
+
+        # 3. Check for Pawn Attacks(Reverse Movement)
+        pawn_direction = 1 if by_color == 'w' else -1 #pawns attack 'down for white', 'up' for black
+
+        for d_col in [-1, 1]: #check diagonals
+            check_row = target_row + pawn_direction
+            check_col = target_col + d_col
+            check_sq = coords_to_square(check_row, check_col)
+
+            if check_sq:
+                piece_code = self.board.get(check_sq)
+                if piece_code == opponent_piece_code_prefix + opponent_pawn:
+                    return True
+
+        # 4. Check for King Attacks
+        king_deltas = [
+            (0, 1), (0, -1), (1, 0), (-1, 0),
+            (1, 1), (1, -1), (-1, 1), (-1, -1)
+        ]
+
+        for d_row, d_col in king_deltas:
+            check_row = target_row + d_row
+            check_col = target_col + d_col
+            check_sq = coords_to_square(check_row, check_col)
+
+            if check_sq:
+                piece_code = self.board.get(check_sq)
+                if piece_code == opponent_piece_code_prefix + opponent_king:
+                    return True
+
+        return False
