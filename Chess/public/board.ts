@@ -384,30 +384,33 @@ async function sendDataToBackend(fromId: string, toId: string): Promise<void> {
 
 	console.log("Sending move to backend for testing...");
 
-	try{
-		const response = await fetch('http://127.0.0.1:5000/api/ai_move', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(dataToSend),
-		});
+	// Simulate giving the AI a moment to "THINK" (1 second delay).
+	setTimeout(async () => {
+			try{
+			const response = await fetch('http://127.0.0.1:5000/api/ai_move', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(dataToSend),
+			});
 
-		if(!response.ok){
-			throw new Error(`HTTP error! Status: ${response.status}`);
+			if(!response.ok){
+				throw new Error(`HTTP error! Status: ${response.status}`);
+			}
+
+			const result = await response.json();
+			console.log("Backend Response:", result);
+
+			if(result.status === 'move_found'){
+				applyAIMove(result);
+				currentPlayer = 'w';
+				updateTurnIndicator();
+			}
+		} catch(error){
+			console.error('Failed to communicate with the backend:', error);
 		}
-
-		const result = await response.json();
-		console.log("Backend Response:", result);
-
-		if(result.status === 'move_found'){
-			applyAIMove(result);
-			currentPlayer = 'w';
-			updateTurnIndicator();
-		}
-	} catch(error){
-		console.error('Failed to communicate with the backend:', error);
-	}
+	}, 1000);
 }
 
 //generate board once DOM is loaded
