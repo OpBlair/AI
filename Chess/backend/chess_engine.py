@@ -13,7 +13,7 @@ columns = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
 search_depth = 3
 
-#=== Utility Functions ===
+# === Utility Functions === #
 def square_to_coords(square_id: str) -> tuple[int, int]:
     #convert piece positions to coordinates e.g. 'a1' -> (1,1) where (row, col)
     if not square_id or len(square_id) != 2 or square_id[0] not in columns:
@@ -34,80 +34,34 @@ class ChessEngine:
     def __init__(self, board_state: dict):
         self.board = board_state
 
-    #--- Core Algorithm(Minimax, Find Best move)
-    def minimax(self, depth: int, maximizing_player: bool) -> float:
-        
-        if depth == 0:
-            return self.evaluate()
+    # ==== STATE MANAGEMENT ==== #
 
-        current_color = 'b' if maximizing_player else 'w'
-        legal_moves = self.get_legal_moves(current_color)
+    def make_move(self, from_sq: str, to_sq: str) -> str | None:
+        #executes the move and returns the captured piece.
+        captured_piece = self.board.get(to_sq)
 
-        if not legal_moves:
-            return self.evaluate()
+        piece_to_move = self.board.get(from_sq)
 
-        if maximizing_player:
-            max_eval = float('-inf')
-            for from_sq, to_sq in legal_moves:
-                captured_piece = self.make_move(from_sq, to_sq)
+        if not piece_to_move:
+            #raise ValueError(f"Attempted to move piece from empty square: {from_sq}")
+            print(f"Warning: Attempted to move piece from empty square: {from_sq}")
+            return None
 
-                eval = self.minimax(depth - 1, False)
+        self.board[to_sq] = piece_to_move
 
-                self.undo_move(from_sq, to_sq, captured_piece)
-                max_eval = max(max_eval, eval)
-            return max_eval
+        self.board[from_sq] = None
 
-        else:
-            min_eval = float('inf')
-            for from_sq, to_sq in legal_moves:
-                captured_piece = self.make_move(from_sq, to_sq)
+        return captured_piece
 
-                eval = self.minimax(depth - 1, True)
+    def undo_move(self, from_sq: str, to_sq: str, captured_piece: str | None) -> None:
+        #Reverts the move
+        piece_to_move = self.board.get(to_sq)
 
-                self.undo_move(from_sq, to_sq, captured_piece)
-                min_eval = min(min_eval, eval)
-            return min_eval
+        self.board[from_sq] = piece_to_move
 
-    def find_best_move(self, ai_color: str) -> tuple[str, str]:
-        #initiates the minimax search and returns best move
-        search_depth = 3
-        maximizing_player = ai_color == 'b'
-        current_color = ai_color
+        self.board[to_sq] = captured_piece
 
-        best_move = None
-        best_eval = float('-inf') if maximizing_player else float('inf')
-
-        ai_legal_moves = self.get_legal_moves(current_color)
-
-        for from_sq, to_sq in ai_legal_moves:
-            captured_piece = self.make_move(from_sq, to_sq)
-
-            eval = self.minimax(
-                search_depth -1,
-                not maximizing_player
-            )
-            self.undo_move(from_sq, to_sq, captured_piece)
-
-            #check if move is better than current best
-            if maximizing_player and eval > best_eval:
-                best_eval = eval
-                best_move = (from_sq, to_sq)
-
-        if best_move:
-            print(f"AI Best move found(Minimax): {best_move} with Eval: {best_eval}")
-        return best_move if best_move else (None, None)
-
-
-    #Game Logic (move execution, evaluation)
-    def evaluate(self) -> float:
-        score = 0
-        for piece_code in self.board.values():
-            if piece_code:
-                color = 1 if piece_code[0] == 'b' else - 1
-                piece_type = piece_code[1]
-                score += color * piece_values.get(piece_type, 0)
-
-        return score
+    # ==== MOVE GENERATION ==== #
 
     def get_legal_moves(self, color: str) -> list[tuple[str, str]]:
         #All moves that DO NOT leave the King in Check
@@ -157,51 +111,6 @@ class ChessEngine:
             # 3.Revert the move to explore the next option
             self.undo_move(from_sq, to_sq, captured_piece)
         return final_legal_moves
-
-    def make_move(self, from_sq: str, to_sq: str) -> str | None:
-        #executes the move and returns the captured piece.
-        captured_piece = self.board.get(to_sq)
-
-        piece_to_move = self.board.get(from_sq)
-
-        if not piece_to_move:
-            #raise ValueError(f"Attempted to move piece from empty square: {from_sq}")
-            print(f"Warning: Attempted to move piece from empty square: {from_sq}")
-            return None
-
-        self.board[to_sq] = piece_to_move
-
-        self.board[from_sq] = None
-
-        return captured_piece
-
-    def undo_move(self, from_sq: str, to_sq: str, captured_piece: str | None) -> None:
-        #Reverts the move
-        piece_to_move = self.board.get(to_sq)
-
-        self.board[from_sq] = piece_to_move
-
-        self.board[to_sq] = captured_piece
-
-    def is_in_check(self, color: str) -> bool:
-        #determines if the King of 'color' is under attack.
-        king_code = color + 'k'
-        king_sq = None
-        
-        # 1.Find the King's position
-        for sq, piece_code in self.board.items():
-            if piece_code == king_code:
-                king_sq = sq
-                break
-
-        if not king_sq:
-            # Should only happen in end-game situations like checkmate/stalemate scenarios 
-            # where the king might have been captured (though this engine doesn't track game over yet).
-            return False
-        
-        # 2.Check if the King's square is attacked by the opponent
-        opponent_color = 'w' if color == 'b' else 'b'
-        return self.is_square_attacked(king_sq, opponent_color)
                 
     def get_pawn_moves(self, from_sq: str, color: str) -> list[tuple[str, str]]:
         moves = []
@@ -359,6 +268,21 @@ class ChessEngine:
         #TODO : CASTLING
         return moves
 
+        #Filter for King Safety
+        for from_sq, to_sq in all_pseudo_legal_moves:
+            # 1.Execute the move hypothetically
+            captured_piece = self.make_move(from_sq, to_sq)
+
+            # 2.Check if the current player is in check after the move
+            if not self.is_in_check(color):
+               final_legal_moves.append((from_sq, to_sq))
+
+            # 3.Revert the move to explore the next option
+            self.undo_move(from_sq, to_sq, captured_piece)
+        return final_legal_moves
+    
+    # ==== ATTACK DETECTION ==== #
+
     def is_square_attacked(self, target_sq: str, by_color: str) -> bool:
         #Determines if 'target_sq' is attacked by any piece of 'by_color'.
         #Check 8 directions for sliding pieces and specific positions for King, Knight, and pawn.
@@ -423,7 +347,7 @@ class ChessEngine:
                     return True
 
         # 3. Check for Pawn Attacks(Reverse Movement)
-        pawn_direction = 1 if by_color == 'w' else -1 #pawns attack 'down for white', 'up' for black
+        pawn_direction = -1 if by_color == 'w' else 1 #pawns attack 'down for white', 'up' for black
 
         for d_col in [-1, 1]: #check diagonals
             check_row = target_row + pawn_direction
@@ -452,38 +376,136 @@ class ChessEngine:
                     return True
 
         return False
-        def process_move(self, from_sq: str, to_sq: str, color: str) -> dict:
-    
-            legal_moves = self.get_legal_moves(color)
-            
-            if (from_sq, to_sq) in legal_moves:
-                # Move is valid, execute it permanently
-                captured = self.make_move(from_sq, to_sq)
-                
-                # Determine the state of the opponent after this move
-                opponent_color = 'b' if color == 'w' else 'w'
-                status = self.get_game_status(opponent_color)
-                
-                return {
-                    "success": True,
-                    "captured": captured,
-                    "new_status": status # 'check', 'checkmate', 'stalemate', or 'normal'
-                }
-            
-            return {"success": False, "message": "Illegal move for " + color}
-        
-        # Define the state of the Game for a Specific Player.
-        def get_game_status(self, color: str) -> str:
-            in_check = self.is_in_check(color)
-            legal_moves = self.get_legal_moves(color)
-        
-            if not legal_moves:
-                if in_check:
-                    return "checkmate"
-                return "stalemate"
-            
-            if in_check:
-                return "check"
-            
-            return "normal"
 
+    def is_in_check(self, color: str) -> bool:
+        #determines if the King of 'color' is under attack.
+        king_code = color + 'k'
+        king_sq = None
+        
+        # 1.Find the King's position
+        for sq, piece_code in self.board.items():
+            if piece_code == king_code:
+                king_sq = sq
+                break
+
+        if not king_sq:
+            # Should only happen in end-game situations like checkmate/stalemate scenarios 
+            # where the king might have been captured (though this engine doesn't track game over yet).
+            return False
+        
+        # 2.Check if the King's square is attacked by the opponent
+        opponent_color = 'w' if color == 'b' else 'b'
+        return self.is_square_attacked(king_sq, opponent_color)
+    
+    # ==== GAME STATUS ===== #
+
+    def process_move(self, from_sq: str, to_sq: str, color: str) -> dict:
+        
+        legal_moves = self.get_legal_moves(color)
+        
+        if (from_sq, to_sq) in legal_moves:
+            # Move is valid, execute it permanently
+            captured = self.make_move(from_sq, to_sq)
+            
+            # Determine the state of the opponent after this move
+            opponent_color = 'b' if color == 'w' else 'w'
+            status = self.get_game_status(opponent_color)
+            
+            return {
+                "success": True,
+                "captured": captured,
+                "new_status": status # 'check', 'checkmate', 'stalemate', or 'normal'
+            }
+        
+        return {"success": False, "message": "Illegal move for " + color}
+
+    # Define the state of the Game for a Specific Player.
+    def get_game_status(self, color: str) -> str:
+        in_check = self.is_in_check(color)
+        legal_moves = self.get_legal_moves(color)
+
+        if not legal_moves:
+            if in_check:
+                return "checkmate"
+            return "stalemate"
+        
+        if in_check:
+            return "check"
+        
+        return "normal"
+    
+    # ===== AI ===== #
+    
+    #Game Logic (move execution, evaluation)
+    def evaluate(self) -> float:
+        score = 0
+        for piece_code in self.board.values():
+            if piece_code:
+                color = 1 if piece_code[0] == 'b' else - 1
+                piece_type = piece_code[1]
+                score += color * piece_values.get(piece_type, 0)
+
+        return score
+    
+    #--- Core Algorithm(Minimax, Find Best move)
+    def minimax(self, depth: int, maximizing_player: bool) -> float:
+        
+        if depth == 0:
+            return self.evaluate()
+
+        current_color = 'b' if maximizing_player else 'w'
+        legal_moves = self.get_legal_moves(current_color)
+
+        if not legal_moves:
+            return self.evaluate()
+
+        if maximizing_player:
+            max_eval = float('-inf')
+            for from_sq, to_sq in legal_moves:
+                captured_piece = self.make_move(from_sq, to_sq)
+
+                eval = self.minimax(depth - 1, False)
+
+                self.undo_move(from_sq, to_sq, captured_piece)
+                max_eval = max(max_eval, eval)
+            return max_eval
+
+        else:
+            min_eval = float('inf')
+            for from_sq, to_sq in legal_moves:
+                captured_piece = self.make_move(from_sq, to_sq)
+
+                eval = self.minimax(depth - 1, True)
+
+                self.undo_move(from_sq, to_sq, captured_piece)
+                min_eval = min(min_eval, eval)
+            return min_eval
+
+    def find_best_move(self, ai_color: str) -> tuple[str, str]:
+        #initiates the minimax search and returns best move
+        search_depth = 3
+        maximizing_player = ai_color == 'b'
+        current_color = ai_color
+
+        best_move = None
+        best_eval = float('-inf') if maximizing_player else float('inf')
+
+        ai_legal_moves = self.get_legal_moves(current_color)
+
+        for from_sq, to_sq in ai_legal_moves:
+            captured_piece = self.make_move(from_sq, to_sq)
+
+            eval = self.minimax(
+                search_depth -1,
+                not maximizing_player
+            )
+            self.undo_move(from_sq, to_sq, captured_piece)
+
+            #check if move is better than current best
+            if maximizing_player and eval > best_eval:
+                best_eval = eval
+                best_move = (from_sq, to_sq)
+
+        if best_move:
+            print(f"AI Best move found(Minimax): {best_move} with Eval: {best_eval}")
+        return best_move if best_move else (None, None)
