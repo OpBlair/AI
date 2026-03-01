@@ -32,7 +32,7 @@ def coords_to_square(row: int, col: int) -> str | None:
 #Chess Engine class
 class ChessEngine:
     def __init__(self, board_state: dict):
-        self.board = board_state
+        self.board = board_state.copy()
 
     # ==== STATE MANAGEMENT ==== #
 
@@ -267,19 +267,6 @@ class ChessEngine:
                     moves.append((from_sq, target_sq))
         #TODO : CASTLING
         return moves
-
-        #Filter for King Safety
-        for from_sq, to_sq in all_pseudo_legal_moves:
-            # 1.Execute the move hypothetically
-            captured_piece = self.make_move(from_sq, to_sq)
-
-            # 2.Check if the current player is in check after the move
-            if not self.is_in_check(color):
-               final_legal_moves.append((from_sq, to_sq))
-
-            # 3.Revert the move to explore the next option
-            self.undo_move(from_sq, to_sq, captured_piece)
-        return final_legal_moves
     
     # ==== ATTACK DETECTION ==== #
 
@@ -483,7 +470,6 @@ class ChessEngine:
 
     def find_best_move(self, ai_color: str) -> tuple[str, str]:
         #initiates the minimax search and returns best move
-        search_depth = 3
         maximizing_player = ai_color == 'b'
         current_color = ai_color
 
@@ -502,9 +488,14 @@ class ChessEngine:
             self.undo_move(from_sq, to_sq, captured_piece)
 
             #check if move is better than current best
-            if maximizing_player and eval > best_eval:
-                best_eval = eval
-                best_move = (from_sq, to_sq)
+            if maximizing_player:
+                if eval > best_eval:
+                    best_eval = eval
+                    best_move = (from_sq, to_sq)
+            else:
+                if eval < best_eval:
+                    best_eval = eval
+                    best_move = (from_sq, to_sq)
 
         if best_move:
             print(f"AI Best move found(Minimax): {best_move} with Eval: {best_eval}")
