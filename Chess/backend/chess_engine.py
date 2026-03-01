@@ -452,3 +452,38 @@ class ChessEngine:
                     return True
 
         return False
+        def process_move(self, from_sq: str, to_sq: str, color: str) -> dict:
+    
+            legal_moves = self.get_legal_moves(color)
+            
+            if (from_sq, to_sq) in legal_moves:
+                # Move is valid, execute it permanently
+                captured = self.make_move(from_sq, to_sq)
+                
+                # Determine the state of the opponent after this move
+                opponent_color = 'b' if color == 'w' else 'w'
+                status = self.get_game_status(opponent_color)
+                
+                return {
+                    "success": True,
+                    "captured": captured,
+                    "new_status": status # 'check', 'checkmate', 'stalemate', or 'normal'
+                }
+            
+            return {"success": False, "message": "Illegal move for " + color}
+        
+        # Define the state of the Game for a Specific Player.
+        def get_game_status(self, color: str) -> str:
+            in_check = self.is_in_check(color)
+            legal_moves = self.get_legal_moves(color)
+        
+            if not legal_moves:
+                if in_check:
+                    return "checkmate"
+                return "stalemate"
+            
+            if in_check:
+                return "check"
+            
+            return "normal"
+
